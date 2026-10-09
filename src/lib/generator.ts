@@ -142,32 +142,34 @@ function renderHeaderSection(
 
   if (showHeader) {
     const monthlyData = monthlyContributions || [];
-    const graphWidth = 200;
+    const chartX = showDevScore ? startX + 470 + 16 : startX;
+    const chartWidth = showDevScore ? cardWidth - 470 - 16 : cardWidth;
+
     const graphHeight = 100;
     const maxCount = Math.max(...monthlyData.map((d) => d.count), 1);
+
+    const last10Months = monthlyData.slice(-10);
+
+    const innerPadding = 32;
+    const graphWidth = chartWidth - innerPadding * 2;
 
     const areaPoints: string[] = [];
     const linePoints: string[] = [];
 
-    const last10Months = monthlyData.slice(-10);
-
     last10Months.forEach((data, i) => {
-      const x = 20 + (i / Math.max(last10Months.length - 1, 1)) * graphWidth;
+      const x = innerPadding + (i / Math.max(last10Months.length - 1, 1)) * graphWidth;
       const y = graphHeight - (data.count / maxCount) * (graphHeight - 6);
       areaPoints.push(`L ${x} ${y}`);
       linePoints.push(`${i === 0 ? "M" : "L"} ${x} ${y}`);
     });
 
-    const firstX = 20 + 0;
-    const lastX = 20 + graphWidth;
+    const firstX = innerPadding;
+    const lastX = innerPadding + graphWidth;
     areaPoints.unshift(`M ${firstX} ${graphHeight}`);
     areaPoints.push(`L ${lastX} ${graphHeight} Z`);
 
     const areaPath = areaPoints.join(" ");
     const linePath = linePoints.join(" ");
-
-    const chartX = showDevScore ? startX + 470 + 16 : startX;
-    const chartWidth = showDevScore ? cardWidth - 470 - 16 : cardWidth;
 
     const labelIndices = [0, 3, 6, 9];
     const labelMonths = last10Months.filter((_, i) => labelIndices.includes(i));
@@ -179,11 +181,11 @@ function renderHeaderSection(
           ${renderIcon("calendar", 0, -1, theme.accent, 14)}
           <text x="26" y="12" font-size="16" font-weight="600" fill="${theme.title}" font-family="${FONT_FAMILY}" letter-spacing="0.3">Monthly Chart</text>
         </g>
-        <g transform="translate(32, 46)">
-          <text x="0" y="8" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end">${maxCount}</text>
-          <text x="0" y="${graphHeight / 3 + 4}" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end">${Math.round(maxCount * 2 / 3)}</text>
-          <text x="0" y="${graphHeight * 2 / 3 + 4}" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end">${Math.round(maxCount / 3)}</text>
-          <text x="0" y="${graphHeight + 4}" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end">0</text>
+        <g transform="translate(0, 46)">
+          <text x="22" y="8" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end">${maxCount}</text>
+          <text x="22" y="${graphHeight / 3 + 4}" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end">${Math.round(maxCount * 2 / 3)}</text>
+          <text x="22" y="${graphHeight * 2 / 3 + 4}" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end">${Math.round(maxCount / 3)}</text>
+          <text x="22" y="${graphHeight + 4}" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end">0</text>
           <defs>
             <linearGradient id="miniAreaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" style="stop-color:${theme.accent};stop-opacity:0.5" />
@@ -192,10 +194,11 @@ function renderHeaderSection(
           </defs>
           <path d="${areaPath}" fill="url(#miniAreaGradient)" />
           <path d="${linePath}" fill="none" stroke="${theme.accent}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <g transform="translate(18, ${graphHeight + 12})">
-            ${labelMonths.map((data, idx) => {
+          <g transform="translate(0, ${graphHeight + 12})">
+            ${labelMonths.map((data) => {
               const originalIdx = last10Months.indexOf(data);
-              return `<text x="${(originalIdx / Math.max(last10Months.length - 1, 1)) * graphWidth}" y="0" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="middle">${data.label}</text>`;
+              const x = innerPadding + (originalIdx / Math.max(last10Months.length - 1, 1)) * graphWidth;
+              return `<text x="${x}" y="0" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="middle">${data.label}</text>`;
             }).join("")}
           </g>
         </g>
@@ -398,10 +401,9 @@ export function generateInsightCard(stats: GitHubStats, options: CardOptions): s
   const showStats = options.showStats !== false;
   const showLanguages = options.showLanguages !== false;
 
-  let statsStartX = 0;
-  let statsWidth = 377;
-  let languagesStartX = 393;
-  let languagesWidth = cardWidth - 393;
+  let statsStartX = 10;
+  let languagesStartX = 383;
+  let languagesWidth = cardWidth - 383;
 
   if (showStats && !showLanguages) {
     statsStartX = (cardWidth - 377) / 2;
@@ -423,8 +425,6 @@ export function generateInsightCard(stats: GitHubStats, options: CardOptions): s
 
   return `
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${cardWidth}" height="${cardHeight}" viewBox="0 0 ${cardWidth} ${cardHeight}">
-  <rect x="0" y="0" width="${cardWidth}" height="${cardHeight}" rx="0" fill="${theme.background}"/>
-
   ${headerSection.svg}
   ${statsCard.svg}
   ${languagesCard.svg}
