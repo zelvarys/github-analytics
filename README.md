@@ -3,7 +3,7 @@
 Generate beautiful and customizable stats cards for your GitHub profile README which includes stars, contributions, top languages, monthly chart and more
 
 <p align="center">
-  <img src="https://github-analytics-incog.vercel.app/api?username=torvalds&theme=github_dark" alt="GitHub Analytics" />
+  <img src="https://github-analytics-incog.vercel.app/api?username=torvalds&theme=github_dark&profile=false" alt="GitHub Analytics" />
 </p>
 
 ---
