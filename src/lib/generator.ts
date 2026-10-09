@@ -214,7 +214,7 @@ function renderHeaderSection(
   };
 }
 
-function renderStatsCard(stats: GitHubStats, theme: ThemeColors, startY: number, startX: number = 0): { svg: string; height: number } {
+function renderStatsCard(stats: GitHubStats, theme: ThemeColors, startY: number, startX: number = 0, cardWidth: number = 387): { svg: string; height: number } {
   const { totalStars, totalContributions, totalPRs, totalIssues, totalCommits } = stats;
   const { grade, color: gradeColor } = calculateGrade(stats);
 
@@ -231,20 +231,22 @@ function renderStatsCard(stats: GitHubStats, theme: ThemeColors, startY: number,
     return `<g transform="translate(0, ${y})">${renderIcon(item.icon, 0, 0, item.color, 16)}<text x="26" y="12" font-size="13" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" letter-spacing="0.3">${item.label}</text><text x="230" y="12" font-size="14" font-weight="600" fill="${theme.text}" font-family="${FONT_FAMILY}" text-anchor="end" letter-spacing="0.2">${item.value.toLocaleString()}</text></g>`;
   });
 
+  const gradeX = cardWidth - 90;
+
   return {
     svg: `<g transform="translate(${startX}, ${startY})">
-      <rect x="0" y="0" width="377" height="200" rx="14" fill="${theme.cardBackground}" stroke="${theme.border}" stroke-width="1"/>
+      <rect x="0" y="0" width="${cardWidth}" height="200" rx="14" fill="${theme.cardBackground}" stroke="${theme.border}" stroke-width="1"/>
       <g transform="translate(24, 24)">
         ${renderIcon("activity", 0, -1, theme.accent, 18)}
         <text x="28" y="13" font-size="16" font-weight="600" fill="${theme.title}" font-family="${FONT_FAMILY}" letter-spacing="0.3">General Statistics</text>
       </g>
       <g transform="translate(24, 56)">${statsSvgParts.join("")}</g>
-      <g transform="translate(287, 58)">
+      <g transform="translate(${gradeX}, 58)">
         <circle cx="36" cy="36" r="34" fill="${theme.background}" stroke="${gradeColor}" stroke-width="2.5"/>
         <circle cx="36" cy="36" r="26" fill="${gradeColor}" opacity="0.1"/>
         <text x="36" y="41" text-anchor="middle" font-size="22" font-weight="700" fill="${gradeColor}" font-family="${FONT_FAMILY}" letter-spacing="0.5">${grade}</text>
       </g>
-      <text x="323" y="160" text-anchor="middle" font-size="12" font-weight="500" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" letter-spacing="0.3">Rating</text>
+      <text x="${gradeX + 36}" y="160" text-anchor="middle" font-size="12" font-weight="500" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" letter-spacing="0.3">Rating</text>
     </g>`,
     height: 210
   };
@@ -401,18 +403,20 @@ export function generateInsightCard(stats: GitHubStats, options: CardOptions): s
   const showStats = options.showStats !== false;
   const showLanguages = options.showLanguages !== false;
 
-  let statsStartX = 10;
-  let languagesStartX = 383;
-  let languagesWidth = cardWidth - 383;
+  let statsStartX = 0;
+  let statsWidth = 387;
+  let languagesStartX = 403;
+  let languagesWidth = cardWidth - 403;
 
   if (showStats && !showLanguages) {
-    statsStartX = (cardWidth - 377) / 2;
+    statsStartX = (cardWidth - 387) / 2;
+    statsWidth = 387;
   } else if (!showStats && showLanguages) {
     languagesStartX = 0;
     languagesWidth = cardWidth;
   }
 
-  const statsCard = showStats ? renderStatsCard(stats, theme, currentY, statsStartX) : { svg: "", height: 0 };
+  const statsCard = showStats ? renderStatsCard(stats, theme, currentY, statsStartX, statsWidth) : { svg: "", height: 0 };
   const languagesCard = showLanguages ? renderLanguagesCard(stats, theme, currentY, languagesStartX, languagesWidth) : { svg: "", height: 0 };
 
   const statsAndLangsHeight = Math.max(statsCard.height, languagesCard.height);
