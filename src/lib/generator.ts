@@ -141,7 +141,12 @@ function renderHeaderSection(
     const areaPath = areaPoints.join(" ");
     const linePath = linePoints.join(" ");
 
-    const labelIndices = [0, 2, 4, 6, 8];
+    // 5 labels ending on the current (last) month, skipping one month in between
+    const totalPoints = last10Months.length;
+    const labelIndices: number[] = [];
+    for (let i = totalPoints - 1; i >= 0 && labelIndices.length < 5; i -= 2) {
+      labelIndices.unshift(i);
+    }
     const labelMonths = last10Months.filter((_, i) => labelIndices.includes(i));
 
     const miniChartSvg = `
