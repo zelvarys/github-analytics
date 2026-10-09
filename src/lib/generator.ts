@@ -116,7 +116,7 @@ function renderHeaderSection(
   ` : "";
 
   const profileHeight = showProfile ? 36 : 0;
-  const startX = 42;
+  const startX = 0;
   let currentY = profileHeight + (showProfile ? 24 : 0);
 
   let headerSvg = '';
@@ -142,32 +142,34 @@ function renderHeaderSection(
 
   if (showHeader) {
     const monthlyData = monthlyContributions || [];
-    const graphWidth = 200;
+    const chartX = showDevScore ? startX + 470 + 16 : startX;
+    const chartWidth = showDevScore ? cardWidth - 470 - 16 : cardWidth;
+
     const graphHeight = 100;
     const maxCount = Math.max(...monthlyData.map((d) => d.count), 1);
+
+    const last10Months = monthlyData.slice(-10);
+
+    const innerPadding = 32;
+    const graphWidth = chartWidth - innerPadding * 2;
 
     const areaPoints: string[] = [];
     const linePoints: string[] = [];
 
-    const last10Months = monthlyData.slice(-10);
-
     last10Months.forEach((data, i) => {
-      const x = 20 + (i / Math.max(last10Months.length - 1, 1)) * graphWidth;
+      const x = innerPadding + (i / Math.max(last10Months.length - 1, 1)) * graphWidth;
       const y = graphHeight - (data.count / maxCount) * (graphHeight - 6);
       areaPoints.push(`L ${x} ${y}`);
       linePoints.push(`${i === 0 ? "M" : "L"} ${x} ${y}`);
     });
 
-    const firstX = 20 + 0;
-    const lastX = 20 + graphWidth;
+    const firstX = innerPadding;
+    const lastX = innerPadding + graphWidth;
     areaPoints.unshift(`M ${firstX} ${graphHeight}`);
     areaPoints.push(`L ${lastX} ${graphHeight} Z`);
 
     const areaPath = areaPoints.join(" ");
     const linePath = linePoints.join(" ");
-
-    const chartX = showDevScore ? startX + 470 + 16 : startX;
-    const chartWidth = showDevScore ? 280 : 770;
 
     const labelIndices = [0, 3, 6, 9];
     const labelMonths = last10Months.filter((_, i) => labelIndices.includes(i));
@@ -179,11 +181,11 @@ function renderHeaderSection(
           ${renderIcon("calendar", 0, -1, theme.accent, 14)}
           <text x="26" y="12" font-size="16" font-weight="600" fill="${theme.title}" font-family="${FONT_FAMILY}" letter-spacing="0.3">Monthly Chart</text>
         </g>
-        <g transform="translate(32, 46)">
-          <text x="0" y="8" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end">${maxCount}</text>
-          <text x="0" y="${graphHeight / 3 + 4}" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end">${Math.round(maxCount * 2 / 3)}</text>
-          <text x="0" y="${graphHeight * 2 / 3 + 4}" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end">${Math.round(maxCount / 3)}</text>
-          <text x="0" y="${graphHeight + 4}" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end">0</text>
+        <g transform="translate(0, 46)">
+          <text x="22" y="8" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end">${maxCount}</text>
+          <text x="22" y="${graphHeight / 3 + 4}" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end">${Math.round(maxCount * 2 / 3)}</text>
+          <text x="22" y="${graphHeight * 2 / 3 + 4}" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end">${Math.round(maxCount / 3)}</text>
+          <text x="22" y="${graphHeight + 4}" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end">0</text>
           <defs>
             <linearGradient id="miniAreaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" style="stop-color:${theme.accent};stop-opacity:0.5" />
@@ -192,10 +194,11 @@ function renderHeaderSection(
           </defs>
           <path d="${areaPath}" fill="url(#miniAreaGradient)" />
           <path d="${linePath}" fill="none" stroke="${theme.accent}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <g transform="translate(18, ${graphHeight + 12})">
-            ${labelMonths.map((data, idx) => {
+          <g transform="translate(0, ${graphHeight + 12})">
+            ${labelMonths.map((data) => {
               const originalIdx = last10Months.indexOf(data);
-              return `<text x="${(originalIdx / Math.max(last10Months.length - 1, 1)) * graphWidth}" y="0" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="middle">${data.label}</text>`;
+              const x = innerPadding + (originalIdx / Math.max(last10Months.length - 1, 1)) * graphWidth;
+              return `<text x="${x}" y="0" font-size="8" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="middle">${data.label}</text>`;
             }).join("")}
           </g>
         </g>
@@ -211,7 +214,7 @@ function renderHeaderSection(
   };
 }
 
-function renderStatsCard(stats: GitHubStats, theme: ThemeColors, startY: number, startX: number = 40): { svg: string; height: number } {
+function renderStatsCard(stats: GitHubStats, theme: ThemeColors, startY: number, startX: number = 0, cardWidth: number = 387): { svg: string; height: number } {
   const { totalStars, totalContributions, totalPRs, totalIssues, totalCommits } = stats;
   const { grade, color: gradeColor } = calculateGrade(stats);
 
@@ -228,33 +231,35 @@ function renderStatsCard(stats: GitHubStats, theme: ThemeColors, startY: number,
     return `<g transform="translate(0, ${y})">${renderIcon(item.icon, 0, 0, item.color, 16)}<text x="26" y="12" font-size="13" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" letter-spacing="0.3">${item.label}</text><text x="230" y="12" font-size="14" font-weight="600" fill="${theme.text}" font-family="${FONT_FAMILY}" text-anchor="end" letter-spacing="0.2">${item.value.toLocaleString()}</text></g>`;
   });
 
+  const gradeX = cardWidth - 90;
+
   return {
     svg: `<g transform="translate(${startX}, ${startY})">
-      <rect x="0" y="0" width="377" height="200" rx="14" fill="${theme.cardBackground}" stroke="${theme.border}" stroke-width="1"/>
+      <rect x="0" y="0" width="${cardWidth}" height="200" rx="14" fill="${theme.cardBackground}" stroke="${theme.border}" stroke-width="1"/>
       <g transform="translate(24, 24)">
         ${renderIcon("activity", 0, -1, theme.accent, 18)}
         <text x="28" y="13" font-size="16" font-weight="600" fill="${theme.title}" font-family="${FONT_FAMILY}" letter-spacing="0.3">General Statistics</text>
       </g>
       <g transform="translate(24, 56)">${statsSvgParts.join("")}</g>
-      <g transform="translate(287, 58)">
+      <g transform="translate(${gradeX}, 58)">
         <circle cx="36" cy="36" r="34" fill="${theme.background}" stroke="${gradeColor}" stroke-width="2.5"/>
         <circle cx="36" cy="36" r="26" fill="${gradeColor}" opacity="0.1"/>
         <text x="36" y="41" text-anchor="middle" font-size="22" font-weight="700" fill="${gradeColor}" font-family="${FONT_FAMILY}" letter-spacing="0.5">${grade}</text>
       </g>
-      <text x="323" y="160" text-anchor="middle" font-size="12" font-weight="500" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" letter-spacing="0.3">Rating</text>
+      <text x="${gradeX + 36}" y="160" text-anchor="middle" font-size="12" font-weight="500" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" letter-spacing="0.3">Rating</text>
     </g>`,
     height: 210
   };
 }
 
-function renderLanguagesCard(stats: GitHubStats, theme: ThemeColors, startY: number, startX: number): { svg: string; height: number } {
+function renderLanguagesCard(stats: GitHubStats, theme: ThemeColors, startY: number, startX: number, cardWidth: number): { svg: string; height: number } {
   const { languages } = stats;
 
   if (languages.length === 0) {
     return { svg: "", height: 0 };
   }
 
-  const barWidth = 329;
+  const barWidth = cardWidth - 48;
   const barHeight = 12;
   const borderRadius = 6;
 
@@ -278,19 +283,21 @@ function renderLanguagesCard(stats: GitHubStats, theme: ThemeColors, startY: num
   const leftColumn = topLangs.filter((_, i) => i % 2 === 0);
   const rightColumn = topLangs.filter((_, i) => i % 2 === 1);
 
+  const columnWidth = (cardWidth - 48) / 2;
+
   const leftLangsSvg = leftColumn.map((lang, index) => {
     const y = index * 27;
-    return `<g transform="translate(0, ${y})"><circle cx="6" cy="7" r="5" fill="${lang.color}"/><text x="20" y="11" font-size="12" font-weight="500" fill="${theme.text}" font-family="${FONT_FAMILY}" letter-spacing="0.3">${escapeHtml(lang.name)}</text><text x="155" y="11" font-size="12" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end" letter-spacing="0.2">${lang.percentage.toFixed(1)}%</text></g>`;
+    return `<g transform="translate(0, ${y})"><circle cx="6" cy="7" r="5" fill="${lang.color}"/><text x="20" y="11" font-size="12" font-weight="500" fill="${theme.text}" font-family="${FONT_FAMILY}" letter-spacing="0.3">${escapeHtml(lang.name)}</text><text x="${columnWidth - 20}" y="11" font-size="12" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end" letter-spacing="0.2">${lang.percentage.toFixed(1)}%</text></g>`;
   }).join("");
 
   const rightLangsSvg = rightColumn.map((lang, index) => {
     const y = index * 27;
-    return `<g transform="translate(175, ${y})"><circle cx="6" cy="7" r="5" fill="${lang.color}"/><text x="20" y="11" font-size="12" font-weight="500" fill="${theme.text}" font-family="${FONT_FAMILY}" letter-spacing="0.3">${escapeHtml(lang.name)}</text><text x="155" y="11" font-size="12" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end" letter-spacing="0.2">${lang.percentage.toFixed(1)}%</text></g>`;
+    return `<g transform="translate(${columnWidth}, ${y})"><circle cx="6" cy="7" r="5" fill="${lang.color}"/><text x="20" y="11" font-size="12" font-weight="500" fill="${theme.text}" font-family="${FONT_FAMILY}" letter-spacing="0.3">${escapeHtml(lang.name)}</text><text x="${columnWidth - 20}" y="11" font-size="12" fill="${theme.textSecondary}" font-family="${FONT_FAMILY}" text-anchor="end" letter-spacing="0.2">${lang.percentage.toFixed(1)}%</text></g>`;
   }).join("");
 
   return {
     svg: `<g transform="translate(${startX}, ${startY})">
-      <rect x="0" y="0" width="377" height="200" rx="14" fill="${theme.cardBackground}" stroke="${theme.border}" stroke-width="1"/>
+      <rect x="0" y="0" width="${cardWidth}" height="200" rx="14" fill="${theme.cardBackground}" stroke="${theme.border}" stroke-width="1"/>
       <g transform="translate(24, 24)">
         ${renderIcon("code", 0, -1, theme.accent, 18)}
         <text x="28" y="13" font-size="16" font-weight="600" fill="${theme.title}" font-family="${FONT_FAMILY}" letter-spacing="0.3">Primary Languages</text>
@@ -327,8 +334,8 @@ function renderContributionLineGraph(stats: GitHubStats, theme: ThemeColors, sta
     monthLabel = `${months[firstDate.getMonth()].slice(0, 3)} ${firstDate.getFullYear()} - ${months[lastDate.getMonth()].slice(0, 3)} ${lastDate.getFullYear()}`;
   }
 
-  const innerWidth = cardWidth - 80;
-  const graphWidth = innerWidth - 70;
+  const innerWidth = cardWidth;
+  const graphWidth = innerWidth - 80;
   const graphHeight = 80;
   const maxCount = Math.max(...last31Days.map((d) => d.contributionCount), 1);
 
@@ -353,7 +360,7 @@ function renderContributionLineGraph(stats: GitHubStats, theme: ThemeColors, sta
   }).join("");
 
   return {
-    svg: `<g transform="translate(40, ${startY})">
+    svg: `<g transform="translate(0, ${startY})">
       <rect x="0" y="0" width="${innerWidth}" height="${graphHeight + 90}" rx="14" fill="${theme.cardBackground}" stroke="${theme.border}" stroke-width="1"/>
       <g transform="translate(24, 16)">
         ${renderIcon("history", 0, -1, theme.accent, 18)}
@@ -383,7 +390,7 @@ function renderContributionLineGraph(stats: GitHubStats, theme: ThemeColors, sta
 export function generateInsightCard(stats: GitHubStats, options: CardOptions): string {
   const { theme } = options;
   const cardWidth = 850;
-  let currentY = 36;
+  let currentY = 0;
 
   const headerSection = renderHeaderSection(stats, theme, currentY, cardWidth, {
     showProfile: options.showProfile,
@@ -396,17 +403,21 @@ export function generateInsightCard(stats: GitHubStats, options: CardOptions): s
   const showStats = options.showStats !== false;
   const showLanguages = options.showLanguages !== false;
 
-  let statsStartX = 40;
-  let languagesStartX = 433;
+  let statsStartX = 0;
+  let statsWidth = 387;
+  let languagesStartX = 403;
+  let languagesWidth = cardWidth - 403;
 
   if (showStats && !showLanguages) {
-    statsStartX = (cardWidth - 377) / 2;
+    statsStartX = (cardWidth - 387) / 2;
+    statsWidth = 387;
   } else if (!showStats && showLanguages) {
-    languagesStartX = (cardWidth - 377) / 2;
+    languagesStartX = 0;
+    languagesWidth = cardWidth;
   }
 
-  const statsCard = showStats ? renderStatsCard(stats, theme, currentY, statsStartX) : { svg: "", height: 0 };
-  const languagesCard = showLanguages ? renderLanguagesCard(stats, theme, currentY, languagesStartX) : { svg: "", height: 0 };
+  const statsCard = showStats ? renderStatsCard(stats, theme, currentY, statsStartX, statsWidth) : { svg: "", height: 0 };
+  const languagesCard = showLanguages ? renderLanguagesCard(stats, theme, currentY, languagesStartX, languagesWidth) : { svg: "", height: 0 };
 
   const statsAndLangsHeight = Math.max(statsCard.height, languagesCard.height);
   currentY += statsAndLangsHeight + 3;
@@ -414,13 +425,10 @@ export function generateInsightCard(stats: GitHubStats, options: CardOptions): s
   const graphSection = options.showGraph !== false ? renderContributionLineGraph(stats, theme, currentY, cardWidth) : { svg: "", height: 0 };
   currentY += graphSection.height;
 
-  const cardHeight = currentY + 28;
+  const cardHeight = currentY;
 
   return `
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${cardWidth}" height="${cardHeight}" viewBox="0 0 ${cardWidth} ${cardHeight}">
-  <rect x="0" y="0" width="${cardWidth}" height="${cardHeight}" rx="16" fill="${theme.background}"/>
-  <rect x="1" y="1" width="${cardWidth - 2}" height="${cardHeight - 2}" rx="15" fill="none" stroke="${theme.border}" stroke-width="1.5"/>
-  
   ${headerSection.svg}
   ${statsCard.svg}
   ${languagesCard.svg}
