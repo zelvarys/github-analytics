@@ -1,5 +1,3 @@
-import { ThemeColors } from '@/types/index';
-
 export const icons: Record<string, string> = {
   star: 'M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z',
   fork: 'M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878zm3.75 7.378a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm3-8.75a.75.75 0 100-1.5.75.75 0 000 1.5z',
@@ -30,46 +28,4 @@ export function escapeHtml(text: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
-}
-
-export function formatNumber(num: number): string {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M';
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K';
-  }
-  return num.toString();
-}
-
-export function generateAnimationStyles(theme: ThemeColors): string {
-  return `
-    <defs>
-      <style type="text/css">
-        <![CDATA[
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-          .card-text { font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
-          @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-          @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-          .animate-fade { animation: fadeIn 0.5s ease-out forwards; }
-          .animate-slide { animation: slideIn 0.6s ease-out forwards; }
-        ]]>
-      </style>
-    </defs>
-  `;
-}
-
-export function generateGradientDefs(theme: ThemeColors): string {
-  return `
-    <defs>
-      <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" style="stop-color:${theme.background};stop-opacity:1" />
-        <stop offset="100%" style="stop-color:${theme.background};stop-opacity:1" />
-      </linearGradient>
-      <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" style="stop-color:${theme.accent};stop-opacity:1" />
-        <stop offset="100%" style="stop-color:${theme.accentSecondary};stop-opacity:1" />
-      </linearGradient>
-    </defs>
-  `;
 }

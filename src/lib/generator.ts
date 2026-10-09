@@ -7,39 +7,10 @@ interface CardOptions {
   theme: ThemeColors;
   showGraph?: boolean;
   showLanguages?: boolean;
-  showStreak?: boolean;
   showStats?: boolean;
   showHeader?: boolean;
-  showSummary?: boolean;
   showProfile?: boolean;
   showDevScore?: boolean;
-}
-
-function formatDateRange(startDateStr: string, endDateStr: string): string {
-  if (!startDateStr || !endDateStr) return "";
-  const startDate = new Date(startDateStr);
-  const endDate = new Date(endDateStr);
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-  if (startDate.getFullYear() === endDate.getFullYear()) {
-    return `${months[startDate.getMonth()]} ${startDate.getDate()} - ${months[endDate.getMonth()]} ${endDate.getDate()}, ${endDate.getFullYear()}`;
-  } else {
-    return `${months[startDate.getMonth()]} ${startDate.getDate()}, ${startDate.getFullYear()} - ${months[endDate.getMonth()]} ${endDate.getDate()}, ${endDate.getFullYear()}`;
-  }
-}
-
-function formatDateFull(dateStr: string): string {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
-}
-
-function getYearsAgo(dateStr: string): string {
-  const created = new Date(dateStr);
-  const now = new Date();
-  const years = Math.floor((now.getTime() - created.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
-  return `${years} year${years !== 1 ? "s" : ""} ago`;
 }
 
 function getGradeColor(rank: string): string {
@@ -91,7 +62,6 @@ function renderHeaderSection(
   cardWidth: number,
   options: {
     showProfile?: boolean;
-    showSummary?: boolean;
     showHeader?: boolean;
     showDevScore?: boolean;
   }
@@ -125,7 +95,7 @@ function renderHeaderSection(
   if (showDevScore) {
     const devScoreCard = `
       <g transform="translate(${startX}, ${currentY})">
-        <rect x="0" y="0" width="470" height="178" rx="14" fill="${theme.cardBackground}" stroke="${theme.border}" stroke-width="1"/>
+        <rect x="0" y="0" width="470" height="178" rx="14" fill="${theme.cardBackground}"/>
         <g transform="translate(24, 16)">
           ${renderIcon("zap", 0, -1, theme.accent, 18)}
           <text x="26" y="12" font-size="16" font-weight="600" fill="${theme.title}" font-family="${FONT_FAMILY}" letter-spacing="0.3">Developer Score</text>
@@ -142,8 +112,8 @@ function renderHeaderSection(
 
   if (showHeader) {
     const monthlyData = monthlyContributions || [];
-    const chartX = showDevScore ? startX + 470 + 16 : startX;
-    const chartWidth = showDevScore ? cardWidth - 470 - 16 : cardWidth;
+    const chartX = showDevScore ? startX + 470 + 12 : startX;
+    const chartWidth = showDevScore ? cardWidth - 470 - 12 : cardWidth;
 
     const graphHeight = 100;
     const maxCount = Math.max(...monthlyData.map((d) => d.count), 1);
@@ -171,12 +141,17 @@ function renderHeaderSection(
     const areaPath = areaPoints.join(" ");
     const linePath = linePoints.join(" ");
 
-    const labelIndices = [0, 3, 6, 9];
+    // 5 labels ending on the current (last) month, skipping one month in between
+    const totalPoints = last10Months.length;
+    const labelIndices: number[] = [];
+    for (let i = totalPoints - 1; i >= 0 && labelIndices.length < 5; i -= 2) {
+      labelIndices.unshift(i);
+    }
     const labelMonths = last10Months.filter((_, i) => labelIndices.includes(i));
 
     const miniChartSvg = `
       <g transform="translate(${chartX}, ${currentY})">
-        <rect x="0" y="0" width="${chartWidth}" height="178" rx="14" fill="${theme.cardBackground}" stroke="${theme.border}" stroke-width="1"/>
+        <rect x="0" y="0" width="${chartWidth}" height="178" rx="14" fill="${theme.cardBackground}"/>
         <g transform="translate(24, 16)">
           ${renderIcon("calendar", 0, -1, theme.accent, 14)}
           <text x="26" y="12" font-size="16" font-weight="600" fill="${theme.title}" font-family="${FONT_FAMILY}" letter-spacing="0.3">Monthly Chart</text>
@@ -235,7 +210,7 @@ function renderStatsCard(stats: GitHubStats, theme: ThemeColors, startY: number,
 
   return {
     svg: `<g transform="translate(${startX}, ${startY})">
-      <rect x="0" y="0" width="${cardWidth}" height="200" rx="14" fill="${theme.cardBackground}" stroke="${theme.border}" stroke-width="1"/>
+      <rect x="0" y="0" width="${cardWidth}" height="200" rx="14" fill="${theme.cardBackground}"/>
       <g transform="translate(24, 24)">
         ${renderIcon("activity", 0, -1, theme.accent, 18)}
         <text x="28" y="13" font-size="16" font-weight="600" fill="${theme.title}" font-family="${FONT_FAMILY}" letter-spacing="0.3">General Statistics</text>
@@ -297,7 +272,7 @@ function renderLanguagesCard(stats: GitHubStats, theme: ThemeColors, startY: num
 
   return {
     svg: `<g transform="translate(${startX}, ${startY})">
-      <rect x="0" y="0" width="${cardWidth}" height="200" rx="14" fill="${theme.cardBackground}" stroke="${theme.border}" stroke-width="1"/>
+      <rect x="0" y="0" width="${cardWidth}" height="200" rx="14" fill="${theme.cardBackground}"/>
       <g transform="translate(24, 24)">
         ${renderIcon("code", 0, -1, theme.accent, 18)}
         <text x="28" y="13" font-size="16" font-weight="600" fill="${theme.title}" font-family="${FONT_FAMILY}" letter-spacing="0.3">Primary Languages</text>
@@ -361,7 +336,7 @@ function renderContributionLineGraph(stats: GitHubStats, theme: ThemeColors, sta
 
   return {
     svg: `<g transform="translate(0, ${startY})">
-      <rect x="0" y="0" width="${innerWidth}" height="${graphHeight + 90}" rx="14" fill="${theme.cardBackground}" stroke="${theme.border}" stroke-width="1"/>
+      <rect x="0" y="0" width="${innerWidth}" height="${graphHeight + 90}" rx="14" fill="${theme.cardBackground}"/>
       <g transform="translate(24, 16)">
         ${renderIcon("history", 0, -1, theme.accent, 18)}
         <text x="28" y="13" font-size="15" font-weight="600" fill="${theme.title}" font-family="${FONT_FAMILY}" letter-spacing="0.3">Contribution Activity</text>
@@ -394,7 +369,6 @@ export function generateInsightCard(stats: GitHubStats, options: CardOptions): s
 
   const headerSection = renderHeaderSection(stats, theme, currentY, cardWidth, {
     showProfile: options.showProfile,
-    showSummary: options.showSummary,
     showHeader: options.showHeader,
     showDevScore: options.showDevScore,
   });
@@ -404,13 +378,13 @@ export function generateInsightCard(stats: GitHubStats, options: CardOptions): s
   const showLanguages = options.showLanguages !== false;
 
   let statsStartX = 0;
-  let statsWidth = 387;
+  let statsWidth = 391;
   let languagesStartX = 403;
   let languagesWidth = cardWidth - 403;
 
   if (showStats && !showLanguages) {
-    statsStartX = (cardWidth - 387) / 2;
-    statsWidth = 387;
+    statsStartX = (cardWidth - 391) / 2;
+    statsWidth = 391;
   } else if (!showStats && showLanguages) {
     languagesStartX = 0;
     languagesWidth = cardWidth;

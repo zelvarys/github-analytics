@@ -92,7 +92,6 @@ export interface GitHubStats {
 
 export interface ThemeColors {
   background: string;
-  backgroundGradient: string;
   cardBackground: string;
   border: string;
   title: string;
