@@ -3,7 +3,6 @@ import { ThemeColors } from '@/types/index';
 export const themes: Record<string, ThemeColors> = {
   github_light: {
     background: '#f6f8fa',
-    backgroundGradient: 'linear-gradient(135deg, #f6f8fa 0%, #ffffff 50%, #f6f8fa 100%)',
     cardBackground: '#ffffff',
     border: '#d0d7de',
     title: '#0550ae',
@@ -16,7 +15,6 @@ export const themes: Record<string, ThemeColors> = {
   },
   github_dark: {
     background: '#0d1117',
-    backgroundGradient: 'linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d1117 100%)',
     cardBackground: '#161b22',
     border: '#30363d',
     title: '#58a6ff',
